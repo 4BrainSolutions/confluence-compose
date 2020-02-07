@@ -1,0 +1,56 @@
+version: '2'
+
+services:
+  confluence:
+    depends_on:
+      - postgresql
+    image: atlassian/confluence-server:6.8
+    networks:
+      - confluencenet
+    volumes:
+      - confluence_data:/var/atlassian/application-data/confluence
+    ports:
+      - '8090:8090'
+      - '8091:8091'
+    environment:
+      - 'SETENV_JVM_MINIMUM_MEMORY=2048m'
+      - 'SETENV_JVM_MAXIMUM_MEMORY=4096m'
+      - 'ATL_TOMCAT_SCHEME=https'
+      - 'ATL_TOMCAT_SECURE=true'
+    logging:
+      # limit logs retained on host to 25MB
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
+
+  postgresql:
+    image: postgres:10.11
+    networks:
+      - confluencenet
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    environment:
+      - 'POSTGRES_USER=confluenceuser'
+      # CHANGE THE PASSWORD!
+      - 'POSTGRES_PASSWORD=jellyfish'
+      - 'POSTGRES_DB=confluencedb'
+      - 'POSTGRES_ENCODING=UNICODE'
+      - 'POSTGRES_COLLATE=C'
+      - 'POSTGRES_COLLATE_TYPE=C'
+    logging:
+      # limit logs retained on host to 25MB
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
+
+volumes:
+  confluence_data:
+    external: false
+  postgresql_data:
+    external: false
+
+networks:
+  confluencenet:
+    driver: bridge
